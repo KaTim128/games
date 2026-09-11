@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="description" content="Froggy Pursuit — an endless highway escape. Swerve through traffic and keep the police off your bumper.">
+<meta name="theme-color" content="#0b0d18">
+<title>Froggy Pursuit — Highway Escape</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="stage">
+  <canvas id="game" width="1280" height="720" aria-label="Froggy Pursuit game screen"></canvas>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-corner hud-tl">
+      <div class="hud-label">SCORE</div>
+      <div class="hud-value" id="hud-score">0</div>
+      <div class="hud-sub">BEST <span id="hud-best">0</span></div>
+    </div>
+
+    <div class="hud-top">
+      <div class="hud-label center">PURSUIT HEAT</div>
+      <div class="bar" id="heat-bar"><div class="bar-fill" id="heat-fill"></div></div>
+    </div>
+
+    <div class="hud-corner hud-tr">
+      <div class="hud-value"><span id="hud-speed">0</span><span class="unit">km/h</span></div>
+      <div class="hud-sub"><span id="hud-dist">0</span> m · LVL <span id="hud-level">1</span></div>
+    </div>
+
+    <div class="hud-bl">
+      <div class="hud-label">NITRO</div>
+      <div class="bar small" id="nitro-bar"><div class="bar-fill" id="nitro-fill"></div></div>
+    </div>
+
+    <div class="hud-buttons">
+      <button id="btn-mute" class="icon-btn" aria-label="Mute">🔊</button>
+      <button id="btn-pause" class="icon-btn" aria-label="Pause">⏸</button>
+    </div>
+
+    <button id="btn-nitro" class="pedal" aria-label="Nitro">NITRO</button>
+  </div>
+
+  <!-- Title -->
+  <div class="screen show" id="screen-title">
+    <div class="panel">
+      <h1>FROGGY<span>PURSUIT</span></h1>
+      <p class="tag">They want the loot back. Don't let them take it.</p>
+      <button class="cta" id="btn-start">START ENGINE</button>
+      <div class="controls">
+        <div><kbd>←</kbd><kbd>→</kbd> or <kbd>A</kbd><kbd>D</kbd> — swerve</div>
+        <div><kbd>Space</kbd> / <kbd>Shift</kbd> — nitro boost</div>
+        <div><kbd>↓</kbd> / <kbd>S</kbd> — brake · <kbd>P</kbd> — pause · <kbd>M</kbd> — sound</div>
+        <div class="touch-hint">On a phone: <b>drag anywhere to steer</b>, hold <b>NITRO</b> to boost.</div>
+      </div>
+      <ul class="brief">
+        <li><b>Dodge traffic.</b> A crash bleeds your speed and the cruisers close in.</li>
+        <li><b>Watch the heat bar.</b> It fills while a cruiser is on your bumper — full means busted.</li>
+        <li><b>Squeeze past cars</b> for near-miss combos, and grab cash and nitro cans.</li>
+        <li><b>Bait the cops into traffic</b> — a wrecked cruiser is 750 points and cools your heat.</li>
+      </ul>
+      <p class="best">BEST SCORE <span id="title-best">0</span></p>
+    </div>
+  </div>
+
+  <!-- Pause -->
+  <div class="screen" id="screen-pause">
+    <div class="panel small">
+      <h2>PAUSED</h2>
+      <button class="cta" id="btn-resume">RESUME</button>
+      <button class="ghost" id="btn-quit">QUIT TO TITLE</button>
+    </div>
+  </div>
+
+  <!-- Game over -->
+  <div class="screen" id="screen-over">
+    <div class="panel">
+      <h2 id="over-reason">BUSTED</h2>
+      <div class="record" id="over-record">NEW RECORD!</div>
+      <div class="score-big" id="over-score">0</div>
+      <div class="stats">
+        <div><span>DISTANCE</span><b id="over-dist">0 m</b></div>
+        <div><span>LEVEL</span><b id="over-level">1</b></div>
+        <div><span>CRUISERS WRECKED</span><b id="over-cops">0</b></div>
+        <div><span>NEAR MISSES</span><b id="over-misses">0</b></div>
+        <div><span>BEST</span><b id="over-best">0</b></div>
+      </div>
+      <button class="cta" id="btn-restart">DRIVE AGAIN</button>
+    </div>
+  </div>
+</div>
+
+<script src="src/config.js"></script>
+<script src="src/util.js"></script>
+<script src="src/audio.js"></script>
+<script src="src/input.js"></script>
+<script src="src/road.js"></script>
+<script src="src/sprites.js"></script>
+<script src="src/game.js"></script>
+<script src="src/main.js"></script>
+</body>
+</html>

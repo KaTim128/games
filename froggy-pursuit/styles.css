@@ -1,0 +1,341 @@
+:root {
+  --ink: #e8ecff;
+  --dim: rgba(200, 214, 255, 0.62);
+  --panel: rgba(10, 13, 28, 0.88);
+  --edge: rgba(130, 156, 230, 0.28);
+  --green: #3fbf6f;
+  --cyan: #57d8ff;
+  --red: #ff4d4d;
+  --amber: #ffd166;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #05060d;
+  color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  display: grid;
+  place-items: center;
+}
+
+/* The playfield keeps a fixed 16:9 shape and letterboxes into the window. */
+#stage {
+  position: relative;
+  width: min(100vw, calc(100vh * 16 / 9));
+  height: min(100vh, calc(100vw * 9 / 16));
+  overflow: hidden;
+  background: #0b0d18;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+
+#game {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+/* ---- HUD ---------------------------------------------------------- */
+
+#hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Readouts belong to the drive; hide them behind the menus. */
+.hud-corner, .hud-top, .hud-bl {
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+body.playing .hud-corner,
+body.playing .hud-top,
+body.playing .hud-bl { opacity: 1; }
+
+.hud-label {
+  font-size: clamp(8px, 1.05vw, 13px);
+  letter-spacing: 0.18em;
+  color: var(--dim);
+  font-weight: 700;
+}
+.hud-label.center { text-align: center; }
+
+.hud-value {
+  font-size: clamp(18px, 3vw, 38px);
+  font-weight: 800;
+  line-height: 1.05;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+}
+.hud-value .unit {
+  font-size: 0.42em;
+  margin-left: 0.35em;
+  color: var(--dim);
+  letter-spacing: 0.1em;
+}
+.hud-sub {
+  font-size: clamp(9px, 1.2vw, 14px);
+  color: var(--dim);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.hud-corner { position: absolute; top: 2.2%; }
+.hud-tl { left: 2%; }
+.hud-tr { right: 2%; text-align: right; }
+
+.hud-top {
+  position: absolute;
+  top: 2.6%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(30%, 340px);
+}
+
+.hud-bl { position: absolute; left: 2%; bottom: 4%; width: min(24%, 240px); }
+
+.bar {
+  margin-top: 4px;
+  height: clamp(8px, 1.5vh, 14px);
+  border: 1px solid var(--edge);
+  border-radius: 99px;
+  background: rgba(6, 8, 18, 0.7);
+  overflow: hidden;
+}
+.bar.small { height: clamp(6px, 1.1vh, 11px); }
+.bar-fill {
+  height: 100%;
+  width: 0;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #4d7bff, #8f7bff);
+  transition: width 90ms linear;
+}
+#heat-bar .bar-fill { background: linear-gradient(90deg, #3fbf6f, #ffd166); }
+#heat-bar.warn .bar-fill { background: linear-gradient(90deg, #ffd166, #ff7b3d); }
+#heat-bar.danger .bar-fill { background: linear-gradient(90deg, #ff5c5c, #ff2b2b); }
+#heat-bar.danger { animation: pulse 0.55s infinite alternate; }
+#nitro-bar .bar-fill { background: linear-gradient(90deg, #1f6f9c, #57d8ff); }
+#nitro-bar.ready .bar-fill { box-shadow: 0 0 12px rgba(87, 216, 255, 0.8); }
+
+@keyframes pulse {
+  from { box-shadow: 0 0 0 rgba(255, 60, 60, 0); }
+  to { box-shadow: 0 0 16px rgba(255, 60, 60, 0.8); }
+}
+
+.hud-buttons {
+  position: absolute;
+  top: 2.2%;
+  left: 50%;
+  transform: translate(-50%, 0);
+  margin-top: clamp(34px, 6.5vh, 62px);
+  display: flex;
+  gap: 8px;
+  pointer-events: auto;
+}
+.icon-btn {
+  width: clamp(28px, 3.4vw, 38px);
+  height: clamp(28px, 3.4vw, 38px);
+  border-radius: 10px;
+  border: 1px solid var(--edge);
+  background: rgba(10, 13, 28, 0.7);
+  color: var(--ink);
+  font-size: clamp(12px, 1.6vw, 17px);
+  cursor: pointer;
+}
+.icon-btn:hover { border-color: rgba(160, 190, 255, 0.6); }
+
+/* Nitro pedal: touch only. */
+.pedal {
+  position: absolute;
+  right: 3%;
+  bottom: 20%;
+  display: none;
+  width: clamp(74px, 15vw, 120px);
+  height: clamp(74px, 15vw, 120px);
+  border-radius: 50%;
+  border: 2px solid rgba(87, 216, 255, 0.65);
+  background: radial-gradient(circle at 50% 35%, rgba(87, 216, 255, 0.35), rgba(10, 20, 40, 0.6));
+  color: #dff6ff;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  font-size: clamp(11px, 2.2vw, 15px);
+  pointer-events: auto;
+  touch-action: none;
+}
+.pedal:active { background: radial-gradient(circle at 50% 35%, rgba(87, 216, 255, 0.7), rgba(10, 20, 40, 0.7)); }
+@media (pointer: coarse) {
+  body.playing .pedal { display: block; }
+}
+
+/* ---- screens ------------------------------------------------------ */
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: none;
+  place-items: center;
+  padding: 3%;
+  background: radial-gradient(circle at 50% 30%, rgba(20, 24, 54, 0.72), rgba(3, 4, 10, 0.92));
+  backdrop-filter: blur(3px);
+  overflow: auto;
+}
+.screen.show { display: grid; }
+
+.panel {
+  width: min(760px, 94%);
+  padding: clamp(14px, 3vh, 30px) clamp(16px, 3vw, 36px);
+  border: 1px solid var(--edge);
+  border-radius: 18px;
+  background: var(--panel);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  text-align: center;
+}
+.panel.small { width: min(400px, 90%); }
+
+h1 {
+  margin: 0 0 6px;
+  font-size: clamp(30px, 7vw, 66px);
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  line-height: 0.95;
+  background: linear-gradient(180deg, #eaffef, var(--green));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+h1 span {
+  display: block;
+  background: linear-gradient(180deg, #fff2d8, #ff7b3d);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+h2 {
+  margin: 0 0 8px;
+  font-size: clamp(22px, 4.6vw, 44px);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: var(--red);
+}
+.tag { margin: 0 0 16px; color: var(--dim); font-size: clamp(11px, 1.7vw, 16px); }
+
+.cta {
+  display: block;
+  margin: 4px auto 12px;
+  padding: clamp(9px, 1.6vh, 15px) clamp(20px, 4vw, 42px);
+  border: 0;
+  border-radius: 99px;
+  background: linear-gradient(180deg, #56dc86, #2a9c55);
+  color: #04240f;
+  font-size: clamp(13px, 2.1vw, 20px);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(60, 200, 120, 0.35);
+}
+.cta:hover { filter: brightness(1.08); }
+.ghost {
+  display: block;
+  margin: 0 auto;
+  padding: 8px 22px;
+  border: 1px solid var(--edge);
+  border-radius: 99px;
+  background: transparent;
+  color: var(--dim);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+}
+
+.controls {
+  margin: 10px auto 14px;
+  display: grid;
+  gap: 5px;
+  font-size: clamp(10px, 1.5vw, 14px);
+  color: var(--dim);
+}
+kbd {
+  display: inline-block;
+  min-width: 1.5em;
+  padding: 1px 6px;
+  margin: 0 2px;
+  border: 1px solid var(--edge);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+}
+.touch-hint { color: rgba(87, 216, 255, 0.85); }
+
+.brief {
+  margin: 0 auto 12px;
+  padding: 12px 16px;
+  max-width: 560px;
+  list-style: none;
+  text-align: left;
+  border: 1px solid var(--edge);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: clamp(10px, 1.5vw, 14px);
+  color: var(--dim);
+  display: grid;
+  gap: 6px;
+}
+.brief b { color: var(--ink); }
+
+.best { margin: 0; font-size: clamp(10px, 1.4vw, 13px); letter-spacing: 0.16em; color: var(--dim); }
+.best span { color: var(--amber); font-weight: 800; }
+
+.score-big {
+  font-size: clamp(38px, 9vw, 82px);
+  font-weight: 900;
+  line-height: 1;
+  color: var(--amber);
+  text-shadow: 0 6px 30px rgba(255, 200, 80, 0.3);
+}
+.record {
+  display: none;
+  margin-bottom: 4px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  color: var(--cyan);
+}
+.record.show { display: block; }
+
+.stats {
+  margin: 14px auto 18px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  max-width: 620px;
+}
+.stats div {
+  padding: 8px 10px;
+  border: 1px solid var(--edge);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  display: grid;
+  gap: 2px;
+}
+.stats span { font-size: clamp(8px, 1.1vw, 11px); letter-spacing: 0.14em; color: var(--dim); }
+.stats b { font-size: clamp(13px, 2vw, 20px); }
+
+/* Landscape is the intended shape; nudge portrait players to rotate. */
+@media (orientation: portrait) and (pointer: coarse) {
+  .tag::after {
+    content: " · Turn your phone sideways for the full screen.";
+    color: var(--cyan);
+  }
+}
